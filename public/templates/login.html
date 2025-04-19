@@ -1,0 +1,78 @@
+<!-- ServeSmart | Login Page -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>ServeSmart - Login</title>
+  <link rel="stylesheet" href="../static/style.css">
+</head>
+
+<body>
+  <header>
+    <h1>ServeSmart 🍽️</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="menu.html">Menu</a></li>
+        <li><a href="order.html">Order</a></li>
+        <li><a href="bill.html">Bill</a></li>
+        <li><a href="staff.html">Staff</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="login-section">
+      <h2>Login to ServeSmart</h2>
+      <form id="loginForm" class="login-form">
+        <label for="contact">Contact Number:</label>
+        <input type="text" id="contact" name="contact" required />
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required />
+
+        <button type="submit">Login</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 ServeSmart Restaurant Management</p>
+  </footer>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const loginData = {
+        contact: document.getElementById('contact').value,
+        cpass: document.getElementById('password').value
+      };
+
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/customers/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(loginData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('customerId', result.id);
+          alert('Login successful. Welcome, ' + result.fname + '!');
+          // Optionally redirect after login
+          // window.location.href = 'menu.html';
+        } else {
+          alert('Login failed: ' + result.error);
+        }
+
+      } catch (err) {
+        alert('Login error: ' + err.message);
+      }
+    });
+  </script>
+</body>
+
+</html>

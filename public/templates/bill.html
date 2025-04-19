@@ -1,0 +1,89 @@
+<!-- ServeSmart | Bill Page -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>ServeSmart - Bill</title>
+  <link rel="stylesheet" href="../static/style.css">
+</head>
+
+<body>
+  <header>
+    <h1>ServeSmart 🍽️</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="menu.html">Menu</a></li>
+        <li><a href="order.html">Order</a></li>
+        <li><a href="bill.html">Bill</a></li>
+        <li><a href="staff.html">Staff</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="bill">
+      <h2>Customer Bill</h2>
+      <div class="bill-box" id="billBox">
+        <p>Loading bill...</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 ServeSmart Restaurant Management</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const billBox = document.getElementById('billBox');
+      const orderId = localStorage.getItem('orderId'); // <-- Set this when placing order
+
+      if (!orderId) {
+        billBox.innerHTML = '<p>No order found. Please place an order first.</p>';
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://127.0.0.1:5000/api/bill/${orderId}`);
+        const bill = await res.json();
+
+        if (!res.ok) {
+          billBox.innerHTML = `<p>Error: ${bill.message}</p>`;
+          return;
+        }
+
+        let itemsHTML = '';
+        let subtotal = 0;
+
+        bill.items.forEach(item => {
+          itemsHTML += `<li>${item.item_name} x${item.quantity} - ₹${item.total}</li>`;
+          subtotal += item.total;
+        });
+
+        const tax = +(subtotal * 0.05).toFixed(2);
+        const discount = +(subtotal * 0.10).toFixed(2);
+        const total = +(subtotal + tax - discount).toFixed(2);
+
+        billBox.innerHTML = `
+          <p><strong>Customer Name:</strong> ${bill.customer.name}</p>
+          <p><strong>Contact:</strong> ${bill.customer.contact}</p>
+          <hr>
+          <h3>Order Summary:</h3>
+          <ul>${itemsHTML}</ul>
+          <hr>
+          <p><strong>Subtotal:</strong> ₹${subtotal.toFixed(2)}</p>
+          <p><strong>Tax (5%):</strong> ₹${tax}</p>
+          <p><strong>Discount (10%):</strong> -₹${discount}</p>
+          <hr>
+          <h3>Total Payable: ₹${total}</h3>
+        `;
+      } catch (error) {
+        billBox.innerHTML = `<p>Something went wrong: ${error.message}</p>`;
+      }
+    });
+  </script>
+</body>
+
+</html>

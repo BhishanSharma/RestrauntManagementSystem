@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>DineMate - Menu</title>
+  <link rel="stylesheet" href="../static/style.css">
+</head>
+
+<body>
+  <header>
+    <h1>ServeSmart 🍽️</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="menu.html">Menu</a></li>
+        <li><a href="order.html">Order</a></li>
+        <li><a href="bill.html">Bill</a></li>
+        <li><a href="staff.html">Staff</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="menu">
+      <h2>Our Menu</h2>
+      <div class="menu-container" id="menu-container">
+        <!-- Menu items will be dynamically inserted here -->
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 ServeSmart Restaurant Management</p>
+  </footer>
+
+  <script>
+    // Fetch menu items from the Flask API endpoint
+    fetch('http://127.0.0.1:5000/api/menu')
+      .then(response => response.json())
+      .then(data => {
+        const menuContainer = document.getElementById('menu-container');
+        data.forEach(item => {
+          // Create a new menu item element
+          const menuItem = document.createElement('div');
+          menuItem.classList.add('menu-item');
+          
+          // Set the inner HTML for the menu item
+          menuItem.innerHTML = `
+            <h3>${item.name}</h3>
+            <p>Type: ${item.type}</p>
+            <p>Price: ₹${item.price}</p>
+          `;
+          
+          // Append the new menu item to the container
+          menuContainer.appendChild(menuItem);
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching menu:', error);
+      });
+  </script>
+</body>
+
+</html>

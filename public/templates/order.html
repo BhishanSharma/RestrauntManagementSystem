@@ -1,0 +1,173 @@
+<!-- DineMate | Order Page -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>DineMate - Place Order</title>
+  <link rel="stylesheet" href="../static/style.css">
+</head>
+
+<body>
+  <header>
+    <h1>DineMate 🍽️</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="menu.html">Menu</a></li>
+        <li><a href="order.html">Order</a></li>
+        <li><a href="bill.html">Bill</a></li>
+        <li><a href="staff.html">Staff</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="order-form">
+      <h2>Place Your Order</h2>
+      <form id="orderForm" action="#" method="post">
+        <label for="waiterId">Enter Waiter ID:</label>
+        <input type="number" id="waiterId" name="waiter_id" required />
+
+        <label for="tipAmount">Enter Tip Amount (₹):</label>
+        <input type="number" id="tipAmount" name="tip" min="0" step="0.01" placeholder="Optional" />
+
+        <label for="food">Select Food Items:</label>
+        <div class="food-options">
+          <!-- Food items will be added dynamically here -->
+        </div>
+
+        <button type="submit">Place Order</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 ServeSmart Restaurant Management</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const customerId = localStorage.getItem('customerId');
+      const foodOptionsDiv = document.querySelector('.food-options');
+
+      if (!customerId) {
+        alert('No customer ID found in localStorage.');
+        return;
+      }
+
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/menu');
+        const menuItems = await response.json();
+
+        if (response.ok) {
+          if (menuItems.length > 0) {
+            menuItems.forEach(item => {
+              const label = document.createElement('label');
+              label.innerHTML = `
+                <input type="checkbox" name="items" value="${item.id}" />
+                ${item.name} - ₹${item.price}
+              `;
+              foodOptionsDiv.appendChild(label);
+            });
+          } else {
+            foodOptionsDiv.innerHTML = '<p>No items available on the menu.</p>';
+          }
+        } else {
+          foodOptionsDiv.innerHTML = '<p>Failed to load menu items.</p>';
+        }
+      } catch (error) {
+        foodOptionsDiv.innerHTML = `<p>Error fetching menu: ${error.message}</p>`;
+      }
+    });
+
+    document.getElementById('orderForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const customerId = localStorage.getItem('customerId');
+      const tipAmount = parseFloat(document.getElementById('tipAmount').value) || 0;
+      const selectedItems = Array.from(document.querySelectorAll('input[name="items"]:checked')).map(item => item.value);
+      const waiterId = document.getElementById('waiterId').value;
+
+      if (selectedItems.length === 0) {
+        alert('Please select at least one food item.');
+        return;
+      }
+
+      // Create the order
+      const orderData = {
+        cust_id: customerId,
+        waiter_id: parseInt(waiterId),  // Default waiter ID (can be modified to logic for automatic assignment)
+        ord_date: new Date().toISOString()  // Date in ISO format
+      };
+
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData)
+        });
+
+        const orderResult = await response.json();
+
+        if (response.ok) {
+          const orderId = orderResult.id;
+          localStorage.setItem("orderId", orderId);
+          // Now, add selected items to the order
+          for (const itemId of selectedItems) {
+            const itemData = {
+              item_no: itemId,
+              qty: 1  // Assuming 1 quantity for each item. You can modify as needed
+            };
+
+            const itemResponse = await fetch(`http://127.0.0.1:5000/api/orders/${orderId}/add_item`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(itemData)
+            });
+
+            const itemResult = await itemResponse.json();
+
+            if (!itemResponse.ok) {
+              alert('Failed to add item: ' + itemResult.error);
+              return;
+            }
+          }
+
+          if (tipAmount > 0) {
+            const tipData = {
+              cust_id: parseInt(customerId),
+              waiter_id: parseInt(waiterId),
+              tip: tipAmount
+            };
+
+            const tipResponse = await fetch('http://127.0.0.1:5000/api/tips', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(tipData)
+            });
+
+            const tipResult = await tipResponse.json();
+
+            if (!tipResponse.ok) {
+              alert("Tip failed: " + tipResult.error);
+              return;
+            }
+
+            console.log("Tip recorded:", tipResult.message);
+          }
+
+          alert('Order placed successfully!');
+          // Optionally, redirect to the bill page: window.location.href = 'bill.html';
+        } else {
+          alert('Failed to place order: ' + orderResult.error);
+        }
+
+      } catch (error) {
+        alert('Error placing order: ' + error.message);
+      }
+    });
+  </script>
+</body>
+
+</html>

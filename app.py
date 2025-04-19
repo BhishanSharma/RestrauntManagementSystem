@@ -1,30 +1,18 @@
-from flask import Flask, render_template
+from flask import Flask
+from models import db
+from routes.api import api  # Import blueprint
+from flask_cors import CORS
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+CORS(app)
 
-@app.route('/login')
-def login():
-    return render_template('login.html')
-
-@app.route('/bill')
-def bill():
-    return render_template('bill.html')
-
-@app.route('/order')
-def order():
-    return render_template('order.html')
-
-@app.route('/menu')
-def menu():
-    return render_template('menu.html')
-
-@app.route('/staff')
-def staff():
-    return render_template('staff.html')
+app.register_blueprint(api)  # Register the blueprint
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    with app.app_context():
+        db.create_all()
+    app.run(host='0.0.0.0', port=5000, debug=True)

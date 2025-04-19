@@ -1,0 +1,92 @@
+<!-- ServeSmart | Staff Page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DineMate - Staff</title>
+  <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+  <header>
+    <h1>ServeSmart 🍽️</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="menu.html">Menu</a></li>
+        <li><a href="order.html">Order</a></li>
+        <li><a href="bill.html">Bill</a></li>
+        <li><a href="staff.html">Staff</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="staff-section">
+      <h2>Our Staff</h2>
+      <div class="staff-grid" id="staffGrid">
+        <p>Loading staff...</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 ServeSmart Restaurant Management</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const staffGrid = document.getElementById('staffGrid');
+      staffGrid.innerHTML = '';
+
+      try {
+        const [chefRes, waiterRes] = await Promise.all([
+          fetch('http://127.0.0.1:5000/api/chefs'),
+          fetch('http://127.0.0.1:5000/api/waiters')
+        ]);
+
+        const chefs = await chefRes.json();
+        const waiters = await waiterRes.json();
+
+        if (!chefRes.ok || !waiterRes.ok) {
+          throw new Error('Error loading staff data');
+        }
+
+        // Render chefs
+        chefs.forEach(c => {
+          const card = document.createElement('div');
+          card.classList.add('staff-card');
+          card.innerHTML = `
+            <h3>${c.fname} ${c.lname}</h3>
+            <p><strong>ID:</strong> ${c.id}</p>
+            <p>Role: ${c.type}</p>
+            <p>Shift: Full Day</p>
+            <p>Contact: N/A</p>
+          `;
+          staffGrid.appendChild(card);
+        });
+
+        // Render waiters
+        waiters.forEach(w => {
+          const card = document.createElement('div');
+          card.classList.add('staff-card');
+          card.innerHTML = `
+            <h3>${w.fname} ${w.lname}</h3>
+            <p><strong>ID:</strong> ${w.id}</p>
+            <p>Role: Waiter</p>
+            <p>Shift: Rotational</p>
+            <p>Contact: ${w.contact}</p>
+          `;
+          staffGrid.appendChild(card);
+        });
+
+        if (chefs.length + waiters.length === 0) {
+          staffGrid.innerHTML = '<p>No staff members found.</p>';
+        }
+
+      } catch (err) {
+        staffGrid.innerHTML = `<p>Failed to load staff data: ${err.message}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>
