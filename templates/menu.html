@@ -1,0 +1,56 @@
+<!-- ServeSmart | Menu Page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DineMate - Menu</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>ServeSmart 🍽️</h1>
+    <nav>
+      <ul>
+        <li><a href="{{ url_for('home') }}">Home</a></li>
+        <li><a href="{{ url_for('menu') }}">Menu</a></li>
+        <li><a href="{{ url_for('order') }}">Order</a></li>
+        <li><a href="{{ url_for('bill') }}">Bill</a></li>
+        <li><a href="{{ url_for('staff') }}">Staff</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="menu">
+      <h2>Our Menu</h2>
+      <div class="menu-container">
+        <div class="menu-item">
+          <h3>Margherita Pizza</h3>
+          <p>Type: Veg</p>
+          <p>Price: ₹250</p>
+        </div>
+        <div class="menu-item">
+          <h3>Chicken Biryani</h3>
+          <p>Type: Non-Veg</p>
+          <p>Price: ₹320</p>
+        </div>
+        <div class="menu-item">
+          <h3>Paneer Butter Masala</h3>
+          <p>Type: Veg</p>
+          <p>Price: ₹280</p>
+        </div>
+        <div class="menu-item">
+          <h3>Grilled Fish</h3>
+          <p>Type: Non-Veg</p>
+          <p>Price: ₹350</p>
+        </div>
+        <!-- Add more items as needed -->
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 ServeSmart Restaurant Management</p>
+  </footer>
+</body>
+</html>

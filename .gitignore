@@ -1,0 +1,43 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Flask instance folder (if used)
+instance/
+
+# Environment variables / secrets
+.env
+
+# Virtual environment
+venv/
+env/
+
+# VSCode settings (optional)
+.vscode/
+
+# macOS system files
+.DS_Store
+
+# Docker files
+*.log
+*.pid
+*.sock
+*.db
+
+# Ignore image builds
+*.tar
+
+# PyCharm project files
+.idea/
+
+# Docker volumes
+volumes/
+
+# Jupyter notebooks (if any)
+.ipynb_checkpoints/
+
+# Node modules (if using frontend tools)
+node_modules/

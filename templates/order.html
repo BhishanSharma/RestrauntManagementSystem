@@ -1,0 +1,70 @@
+<!-- DineMate | Order Page -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>DineMate - Place Order</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <header>
+      <h1>DineMate 🍽️</h1>
+      <nav>
+        <ul>
+          <li><a href="{{ url_for('home') }}">Home</a></li>
+          <li><a href="{{ url_for('menu') }}">Menu</a></li>
+          <li><a href="{{ url_for('order') }}">Order</a></li>
+          <li><a href="{{ url_for('bill') }}">Bill</a></li>
+          <li><a href="{{ url_for('staff') }}">Staff</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <section class="order-form">
+        <h2>Place Your Order</h2>
+        <form action="#" method="post">
+          <label for="custName">Customer Name:</label>
+          <input type="text" id="custName" name="custName" required />
+
+          <label for="contact">Contact Number:</label>
+          <input
+            type="tel"
+            id="contact"
+            name="contact"
+            pattern="[0-9]{10}"
+            maxlength="10"
+            required
+            title="Enter a 10-digit phone number"
+          />
+
+          <label for="food">Select Food Items:</label>
+          <div class="food-options">
+            <label
+              ><input type="checkbox" name="items" value="Pizza" /> Margherita
+              Pizza - ₹250</label
+            >
+            <label
+              ><input type="checkbox" name="items" value="Biryani" /> Chicken
+              Biryani - ₹320</label
+            >
+            <label
+              ><input type="checkbox" name="items" value="Paneer" /> Paneer
+              Butter Masala - ₹280</label
+            >
+            <label
+              ><input type="checkbox" name="items" value="Fish" /> Grilled Fish
+              - ₹350</label
+            >
+          </div>
+
+          <button type="submit">Place Order</button>
+        </form>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 ServeSmart Restaurant Management</p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+<!-- ServeSmart | Bill Page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ServeSmart - Bill</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>ServeSmart 🍽️</h1>
+    <nav>
+      <ul>
+        <li><a href="{{ url_for('home') }}">Home</a></li>
+        <li><a href="{{ url_for('menu') }}">Menu</a></li>
+        <li><a href="{{ url_for('order') }}">Order</a></li>
+        <li><a href="{{ url_for('bill') }}">Bill</a></li>
+        <li><a href="{{ url_for('staff') }}">Staff</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="bill">
+      <h2>Customer Bill</h2>
+      <div class="bill-box">
+        <p><strong>Customer Name:</strong> John Doe</p>
+        <p><strong>Contact:</strong> 9876543210</p>
+        <hr>
+        <h3>Order Summary:</h3>
+        <ul>
+          <li>Margherita Pizza - ₹250</li>
+          <li>Chicken Biryani - ₹320</li>
+        </ul>
+        <hr>
+        <p><strong>Subtotal:</strong> ₹570</p>
+        <p><strong>Tax (5%):</strong> ₹28.5</p>
+        <p><strong>Discount (10%):</strong> -₹57</p>
+        <hr>
+        <h3>Total Payable: ₹541.5</h3>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 ServeSmart Restaurant Management</p>
+  </footer>
+</body>
+</html>

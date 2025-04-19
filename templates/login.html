@@ -1,0 +1,42 @@
+<!-- ServeSmart | Login Page -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ServeSmart - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <header>
+      <h1>ServeSmart 🍽️</h1>
+      <nav>
+        <ul>
+          <li><a href="{{ url_for('home') }}">Home</a></li>
+          <li><a href="{{ url_for('menu') }}">Menu</a></li>
+          <li><a href="{{ url_for('order') }}">Order</a></li>
+          <li><a href="{{ url_for('bill') }}">Bill</a></li>
+          <li><a href="{{ url_for('staff') }}">Staff</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <section class="login-section">
+        <h2>Login to ServeSmart</h2>
+        <form class="login-form" action="/login" method="POST">
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" required />
+
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" required />
+
+          <button type="submit">Login</button>
+        </form>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 ServeSmart Restaurant Management</p>
+    </footer>
+  </body>
+</html>
