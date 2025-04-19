@@ -1,4 +1,4 @@
-# 🍽️ Restaurant Management System
+# 🍽️ servesmart (Restraunt Management System)
 
 A **Flask-based API** for managing restaurant operations, including order processing, cost calculation, and transaction storage. The backend is powered by **Flask** and uses an **SQL database** (SQLite) to store and retrieve data. This system is designed for developers looking to build a backend service with Python and integrate it with a front-end application or mobile interface.
 
