@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Serve Smart - Admin Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <header>
+    <div class="logo">Serve Smart</div>
+    <nav>
+      <a href="./components/orders.html">Orders</a>
+      <a href="./components/menu.html">Menu</a>
+      <a href="./components/customers.html">Customers</a>
+      <a href="./components/staff.html">Staff</a>
+      <a href="./components/bill.html">Bill</a>
+      <a href="#" class="logout">Logout</a>
+    </nav>
+  </header>
+
+  <section class="dashboard">
+    <h1>Welcome, Admin!</h1>
+    <div class="dashboard-stats">
+      <div class="stat-box">
+        <h3>Total Orders</h3>
+        <p id="orderCount">Loading...</p>
+      </div>
+      <div class="stat-box">
+        <h3>Customers</h3>
+        <p id="customerCount">Loading...</p>
+      </div>
+      <div class="stat-box">
+        <h3>Staff</h3>
+        <p id="staffCount">Loading...</p>
+      </div>
+      <div class="stat-box">
+        <h3>Revenue Today</h3>
+        <p id="revenueToday">$0</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 Serve Smart. All rights reserved.</p>
+  </footer>
+
+  <script>
+    async function fetchCounts() {
+      try {
+        const [ordersRes, customersRes, waitersRes, chefsRes] = await Promise.all([
+          fetch("http://127.0.0.1:5000/api/orders"),
+          fetch("http://127.0.0.1:5000/api/customers"),
+          fetch("http://127.0.0.1:5000/api/waiters"),
+          fetch("http://127.0.0.1:5000/api/chefs")
+        ]);
+
+        const [orders, customers, waiters, chefs] = await Promise.all([
+          ordersRes.json(),
+          customersRes.json(),
+          waitersRes.json(),
+          chefsRes.json()
+        ]);
+
+        const orderCount = orders.length;
+        const customerCount = customers.length;
+        const staffCount = waiters.length + chefs.length;
+
+        let todayRevenue = 0;
+        const todayDate = new Date().toISOString().split("T")[0];
+
+        orders.forEach(order => {
+          if (order.order_date.startsWith(todayDate)) {
+            order.items.forEach(item => {
+              todayRevenue += item.price * item.qty;
+            });
+          }
+        });
+
+        document.getElementById("orderCount").textContent = orderCount;
+        document.getElementById("customerCount").textContent = customerCount;
+        document.getElementById("staffCount").textContent = staffCount;
+        document.getElementById("revenueToday").textContent = "$" + todayRevenue.toFixed(2);
+
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    }
+
+    fetchCounts();
+  </script>
+</body>
+
+</html>

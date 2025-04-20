@@ -24,27 +24,6 @@ def add_customer():
     db.session.commit()
     return jsonify({"message": "Customer added", "id": new_customer.cust_id}), 201
 
-@api.route('/api/customers/login', methods=['POST'])
-def login_customer():
-    data = request.get_json()
-
-    # Basic input validation
-    if not data or 'contact' not in data or 'cpass' not in data:
-        return jsonify({"error": "Missing contact or password"}), 400
-
-    # Find the customer by contact
-    customer = Customer.query.filter_by(contact_no=data['contact'], cust_pass=data['cpass']).first()
-
-    if customer:
-        return jsonify({
-            "message": "Login successful",
-            "id": customer.cust_id,
-            "fname": customer.cust_fname,
-            "lname": customer.cust_lname
-        }), 200
-    else:
-        return jsonify({"error": "Invalid credentials"}), 401
-
 @api.route('/api/customers', methods=['GET']) # ✅✅✅
 def get_customers():
     customers = Customer.query.all()
@@ -149,6 +128,60 @@ def add_item_to_order(order_id):
     db.session.commit()
     return jsonify({"message": "Item added to order"}), 201
 
+# ------------------ Orders ------------------
+@api.route('/api/orders', methods=['GET']) # ✅✅✅
+def get_orders():
+    orders = Order.query.all()
+    orders_list = []
+    for order in orders:
+        # Fetch related items for each order
+        items = Contains.query.filter_by(ord_no=order.ord_no).all()
+        items_list = []
+        for item in items:
+            menu_item = Menu.query.get(item.item_no)
+            if menu_item:
+                items_list.append({
+                    "item_name": menu_item.item_name,
+                    "qty": item.qty,
+                    "price": menu_item.item_price
+                })
+        orders_list.append({
+            "order_id": order.ord_no,
+            "order_date": order.ord_date,
+            "customer_id": order.cust_id,
+            "waiter_id": order.waiter_id,
+            "items": items_list
+        })
+    len(orders_list)
+    return jsonify(orders_list), 200
+
+
+@api.route('/api/orders/<int:order_id>', methods=['GET']) # ✅✅✅
+def get_order(order_id):
+    order = Order.query.get(order_id)
+    if not order:
+        return jsonify({"error": "Order not found"}), 404
+
+    # Fetch related items for the specific order
+    items = Contains.query.filter_by(ord_no=order_id).all()
+    items_list = []
+    for item in items:
+        menu_item = Menu.query.get(item.item_no)
+        if menu_item:
+            items_list.append({
+                "item_name": menu_item.name,
+                "qty": item.qty,
+                "price": menu_item.price
+            })
+
+    return jsonify({
+        "order_id": order.ord_no,
+        "order_date": order.ord_date,
+        "customer_id": order.cust_id,
+        "waiter_id": order.waiter_id,
+        "items": items_list
+    }), 200
+
 
 # ------------------ Tips ------------------
 @api.route('/api/tips', methods=['POST']) # ✅✅✅
@@ -178,21 +211,19 @@ def generate_bill(ord_no):
     if not order:
         return jsonify({"message": "Order not found"}), 404
 
-    # Get related customer and waiter info
     customer = order.customer
     waiter = order.waiter
 
-    # Generate itemized bill
     bill_items = []
-    total_amount = 0.0
+    subtotal = 0.0
 
     for c in order.contains:
         menu_item = Menu.query.get(c.item_no)
         if not menu_item:
-            continue  # Skip missing items
+            continue
 
         line_total = menu_item.item_price * c.qty
-        total_amount += line_total
+        subtotal += line_total
 
         bill_items.append({
             "item_id": menu_item.item_no,
@@ -200,10 +231,18 @@ def generate_bill(ord_no):
             "item_type": menu_item.item_type,
             "price": menu_item.item_price,
             "quantity": c.qty,
-            "total": line_total
+            "total": round(line_total, 2)
         })
 
-    # Create full response
+    # Fetch latest tip (if any)
+    tip = Tips.query.filter_by(
+        cust_id=order.cust_id,
+        waiter_id=order.waiter_id
+    ).order_by(Tips.id.desc()).first()
+
+    tip_amount = tip.tip if tip else 0.0
+    total = subtotal + tip_amount
+
     response = {
         "order_id": order.ord_no,
         "order_date": order.ord_date,
@@ -218,7 +257,9 @@ def generate_bill(ord_no):
             "contact": waiter.waiter_contact
         },
         "items": bill_items,
-        "total_amount": round(total_amount, 2)
+        "subtotal": round(subtotal, 2),
+        "tip": round(tip_amount, 2),
+        "total_amount": round(total, 2)
     }
 
     return jsonify(response), 200

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serve Smart - Customers Management</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">Serve Smart</div>
+        <nav>
+            <a href="../home.html">Dashboard</a>
+            <a href="orders.html">Orders</a>
+            <a href="menu.html">Menu</a>
+            <a href="customers.html">Customers</a>
+            <a href="staff.html">Staff</a>
+            <a href="bill.html">Bill</a>
+            <a href="#" class="logout">Logout</a>
+        </nav>
+    </header>
+
+    <section class="customers">
+        <h1>Manage Customers</h1>
+        <table class="customer-table">
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Orders</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="customerList"></tbody>
+        </table>
+
+        <!-- Button to Open the Add Customer Form -->
+        <button class="add-customer-btn" onclick="toggleCustomerForm()">Add New Customer</button>
+
+        <!-- Add Customer Form (Initially Hidden) -->
+        <div id="addCustomerForm" style="display: none;">
+            <h2>Add New Customer</h2>
+            <form id="newCustomerForm">
+                <label for="fname">First Name:</label>
+                <input type="text" id="fname" required>
+
+                <label for="lname">Last Name:</label>
+                <input type="text" id="lname" required>
+
+                <label for="contact">Phone:</label>
+                <input type="text" id="contact" required>
+
+                <label for="cpass">Password:</label>
+                <input type="password" id="cpass" required>
+
+                <button type="submit">Add Customer</button>
+            </form>
+            <button onclick="toggleCustomerForm()">Cancel</button>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Serve Smart. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Toggle the visibility of the Add Customer form
+        function toggleCustomerForm() {
+            const form = document.getElementById("addCustomerForm");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+
+        // Load existing customers from the server
+        async function loadCustomers() {
+            try {
+                const res = await fetch("http://127.0.0.1:5000/api/customers");
+                const customers = await res.json();
+
+                const tbody = document.getElementById("customerList");
+                tbody.innerHTML = customers.map(c => `
+                    <tr>
+                        <td>${c.fname} ${c.lname}</td>
+                        <td>Not Available</td>
+                        <td>${c.contact}</td>
+                        <td>-</td>
+                        <td><button>View Orders</button> <button>Delete</button></td>
+                    </tr>
+                `).join("");
+            } catch (err) {
+                console.error("Failed to load customers:", err);
+            }
+        }
+
+        // Add new customer by submitting the form
+        document.getElementById('newCustomerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fname = document.getElementById('fname').value;
+            const lname = document.getElementById('lname').value;
+            const contact = document.getElementById('contact').value;
+            const cpass = document.getElementById('cpass').value;
+
+            const newCustomerData = {
+                fname,
+                lname,
+                contact,
+                cpass
+            };
+
+            try {
+                const res = await fetch("http://127.0.0.1:5000/api/customers", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newCustomerData)
+                });
+
+                const result = await res.json();
+
+                if (res.status === 201) {
+                    alert('Customer added successfully!');
+                    loadCustomers();  // Reload the customer list
+                    toggleCustomerForm();  // Hide the form
+                } else {
+                    alert(result.error || 'Failed to add customer');
+                }
+            } catch (err) {
+                console.error("Error adding customer:", err);
+                alert("Failed to add customer");
+            }
+        });
+
+        // Load customers when the page loads
+        window.onload = loadCustomers;
+    </script>
+</body>
+
+</html>

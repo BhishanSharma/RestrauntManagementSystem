@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serve Smart - Menu Management</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .form-inline {
+            margin-bottom: 1em;
+        }
+
+        .form-inline input {
+            margin-right: 0.5em;
+            padding: 0.5em;
+        }
+
+        .form-inline button {
+            padding: 0.5em 1em;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">Serve Smart</div>
+        <nav>
+            <a href="../home.html">Dashboard</a>
+            <a href="orders.html">Orders</a>
+            <a href="menu.html">Menu</a>
+            <a href="customers.html">Customers</a>
+            <a href="staff.html">Staff</a>
+            <a href="bill.html">Bill</a>
+            <a href="#" class="logout">Logout</a>
+        </nav>
+    </header>
+    
+    <section class="staff">
+        <h1>Manage Staff</h1>
+
+        <h2>Chefs</h2>
+        <div class="form-inline">
+            <input type="text" id="chefFname" placeholder="First Name">
+            <input type="text" id="chefLname" placeholder="Last Name">
+            <input type="text" id="chefType" placeholder="Specialty">
+            <button onclick="addChef()">Add Chef</button>
+        </div>
+        <table class="staff-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Specialty</th>
+                </tr>
+            </thead>
+            <tbody id="chefList"></tbody>
+        </table>
+
+        <h2>Waiters</h2>
+        <div class="form-inline">
+            <input type="text" id="waiterFname" placeholder="First Name">
+            <input type="text" id="waiterLname" placeholder="Last Name">
+            <input type="text" id="waiterContact" placeholder="Contact">
+            <button onclick="addWaiter()">Add Waiter</button>
+        </div>
+        <table class="staff-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Contact</th>
+                </tr>
+            </thead>
+            <tbody id="waiterList"></tbody>
+        </table>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Serve Smart. All rights reserved.</p>
+    </footer>
+
+    <script>
+        async function loadStaff() {
+            try {
+                const chefRes = await fetch("http://127.0.0.1:5000/api/chefs");
+                const waiterRes = await fetch("http://127.0.0.1:5000/api/waiters");
+                const chefs = await chefRes.json();
+                const waiters = await waiterRes.json();
+
+                const chefList = document.getElementById("chefList");
+                chefList.innerHTML = chefs.map(chef => `
+                    <tr>
+                        <td>${chef.id}</td>
+                        <td>${chef.fname} ${chef.lname}</td>
+                        <td>${chef.type}</td>
+                    </tr>
+                `).join("");
+
+                const waiterList = document.getElementById("waiterList");
+                waiterList.innerHTML = waiters.map(waiter => `
+                    <tr>
+                        <td>${waiter.id}</td>
+                        <td>${waiter.fname} ${waiter.lname}</td>
+                        <td>${waiter.contact}</td>
+                    </tr>
+                `).join("");
+            } catch (err) {
+                console.error("Error loading staff:", err);
+            }
+        }
+
+        async function addChef() {
+            const fname = document.getElementById("chefFname").value;
+            const lname = document.getElementById("chefLname").value;
+            const type = document.getElementById("chefType").value;
+
+            if (!fname || !lname || !type) {
+                alert("Please fill in all chef fields.");
+                return;
+            }
+
+            try {
+                const res = await fetch("http://127.0.0.1:5000/api/chefs", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ fname, lname, type })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert("Chef added!");
+                    loadStaff();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) {
+                console.error("Failed to add chef:", err);
+            }
+        }
+
+        async function addWaiter() {
+            const fname = document.getElementById("waiterFname").value;
+            const lname = document.getElementById("waiterLname").value;
+            const contact = document.getElementById("waiterContact").value;
+
+            if (!fname || !lname || !contact) {
+                alert("Please fill in all waiter fields.");
+                return;
+            }
+
+            try {
+                const res = await fetch("http://127.0.0.1:5000/api/waiters", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ fname, lname, contact })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert("Waiter added!");
+                    loadStaff();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) {
+                console.error("Failed to add waiter:", err);
+            }
+        }
+
+        window.onload = loadStaff;
+    </script>
+</body>
+
+</html>

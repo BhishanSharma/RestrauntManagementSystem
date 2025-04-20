@@ -26,15 +26,14 @@ class Waiter(db.Model):
     def __repr__(self):
         return f"<Waiter {self.waiter_fname} {self.waiter_lname} {self.waiter_contact}>"
 
-
 class Tips(db.Model):
-    cust_id = db.Column(db.Integer, db.ForeignKey('customer.cust_id'), primary_key=True)
-    waiter_id = db.Column(db.Integer, db.ForeignKey('waiter.waiter_id'), primary_key=True)
-    tip = db.Column(db.Float)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    cust_id = db.Column(db.Integer, db.ForeignKey('customer.cust_id'), nullable=False)
+    waiter_id = db.Column(db.Integer, db.ForeignKey('waiter.waiter_id'), nullable=False)
+    tip = db.Column(db.Float, nullable=False)
 
     def __repr__(self):
-        return f"<Tip Cust:{self.cust_id} Waiter:{self.waiter_id} Tip:{self.tip}>"
-
+        return f"<Tip ID:{self.id} Cust:{self.cust_id} Waiter:{self.waiter_id} Tip:{self.tip}>"
 
 class Chef(db.Model):
     chef_id = db.Column(db.Integer, primary_key=True)
@@ -52,6 +51,7 @@ class Order(db.Model):
     cust_id = db.Column(db.Integer, db.ForeignKey('customer.cust_id'))
     waiter_id = db.Column(db.Integer, db.ForeignKey('waiter.waiter_id'))
     contains = db.relationship('Contains', backref='order', lazy=True)
+    status = db.Column(db.String(20))
 
     def __repr__(self):
         return f"<Order #{self.ord_no} Date:{self.ord_date}>"

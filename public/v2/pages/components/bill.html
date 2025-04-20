@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Serve Smart - View Bill</title>
+    <link rel="stylesheet" href="../styles.css" />
+</head>
+
+<body>
+    <header>
+        <div class="logo">Serve Smart</div>
+        <nav>
+            <a href="../home.html">Dashboard</a>
+            <a href="orders.html">Orders</a>
+            <a href="menu.html">Menu</a>
+            <a href="customers.html">Customers</a>
+            <a href="staff.html">Staff</a>
+            <a href="bill.html">Bill</a>
+            <a href="#" class="logout">Logout</a>
+        </nav>
+    </header>
+
+    <section class="section">
+        <h2>View Bill by Order ID</h2>
+        <form id="billForm">
+            <input type="text" id="orderIdInput" placeholder="Enter Order ID" required />
+            <button type="submit">Get Bill</button>
+        </form>
+
+        <div id="billContainer" style="margin-top: 2rem;"></div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Serve Smart. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const form = document.getElementById("billForm");
+        const orderIdInput = document.getElementById("orderIdInput");
+        const billContainer = document.getElementById("billContainer");
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const orderId = orderIdInput.value.trim();
+            if (!orderId) return;
+
+            billContainer.innerHTML = "<p>Loading...</p>";
+
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/api/bill/${orderId}`);
+                const data = await response.json();
+                console.log(data);
+
+                if (!response.ok) {
+                    billContainer.innerHTML = `<p style="color:red;">${data.message || "Failed to fetch bill."}</p>`;
+                    return;
+                }
+
+                let html = `
+          <h3>Order ID: ${data.order_id}</h3>
+          <p><strong>Customer:</strong> ${data.customer.name} (ID: ${data.customer.id})</p>
+          <p><strong>Waiter:</strong> ${data.waiter.name} (ID: ${data.waiter.id})</p>
+          <p><strong>Order Date:</strong> ${data.order_date}</p>
+          <table border="1" cellpadding="8" cellspacing="0" style="margin-top:1rem; width: 100%;">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Type</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+                data.items.forEach(item => {
+                    html += `
+            <tr>
+              <td>${item.item_name}</td>
+              <td>${item.item_type}</td>
+              <td>$${item.price.toFixed(2)}</td>
+              <td>${item.quantity}</td>
+              <td>$${item.total.toFixed(2)}</td>
+            </tr>
+          `;
+                });
+
+                html += `
+            </tbody>
+          </table>
+          <h3 style="margin-top:1rem;">Total: $${data.total_amount.toFixed(2)}</h3>
+        `;
+
+                billContainer.innerHTML = html;
+            } catch (error) {
+                console.error(error);
+                billContainer.innerHTML = `<p style="color:red;">Something went wrong. Please try again.</p>`;
+            }
+        });
+    </script>
+</body>
+
+</html>

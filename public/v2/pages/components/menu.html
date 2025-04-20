@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serve Smart - Menu Management</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .add-form {
+            margin-top: 1em;
+            display: none;
+            gap: 1em;
+            flex-wrap: wrap;
+        }
+
+        .add-form input {
+            padding: 0.5em;
+            margin-right: 0.5em;
+        }
+
+        .add-form button {
+            padding: 0.5em 1em;
+        }
+
+        .menu-table {
+            margin-top: 1em;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">Serve Smart</div>
+        <nav>
+            <a href="../home.html">Dashboard</a>
+            <a href="orders.html">Orders</a>
+            <a href="menu.html">Menu</a>
+            <a href="customers.html">Customers</a>
+            <a href="staff.html">Staff</a>
+            <a href="bill.html">Bill</a>
+            <a href="#" class="logout">Logout</a>
+        </nav>
+    </header>
+
+    <section class="menu">
+        <h1>Manage Menu</h1>
+        <table class="menu-table">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="menuList"></tbody>
+        </table>
+
+        <button class="add-item" onclick="toggleAddForm()">Add New Item</button>
+
+        <div class="add-form" id="addForm">
+            <input type="text" id="itemName" placeholder="Item Name">
+            <input type="text" id="itemType" placeholder="Category">
+            <input type="number" id="itemPrice" placeholder="Price">
+            <input type="number" id="chefId" placeholder="Chef ID">
+            <input type="number" id="itemStock" placeholder="Stock (optional)">
+            <button onclick="addMenuItem()">Submit</button>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Serve Smart. All rights reserved.</p>
+    </footer>
+
+    <script>
+        async function loadMenu() {
+            try {
+                const res = await fetch("http://127.0.0.1:5000/api/menu");
+                const menuItems = await res.json();
+
+                const tbody = document.getElementById("menuList");
+                tbody.innerHTML = menuItems.map(item => `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${item.type}</td>
+                        <td>₹${item.price}</td>
+                        <td><button>Edit</button> <button>Delete</button></td>
+                    </tr>
+                `).join("");
+            } catch (err) {
+                console.error("Failed to load menu:", err);
+            }
+        }
+
+        function toggleAddForm() {
+            const form = document.getElementById("addForm");
+            form.style.display = form.style.display === "flex" ? "none" : "flex";
+        }
+
+        async function addMenuItem() {
+            const name = document.getElementById("itemName").value.trim();
+            const type = document.getElementById("itemType").value.trim();
+            const price = parseFloat(document.getElementById("itemPrice").value);
+            const chef_id = parseInt(document.getElementById("chefId").value);
+            const stockInput = document.getElementById("itemStock").value;
+            const stock = stockInput ? parseInt(stockInput) : 0;
+
+            if (!name || !type || isNaN(price) || isNaN(chef_id)) {
+                alert("Please fill in all required fields (Name, Type, Price, Chef ID).");
+                return;
+            }
+
+            try {
+                const res = await fetch("http://127.0.0.1:5000/api/menu", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ name, type, price, chef_id, stock })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    alert("Item added successfully!");
+                    document.getElementById("addForm").style.display = "none";
+                    clearFormInputs();
+                    loadMenu();
+                } else {
+                    alert("Error: " + (data.message || "Something went wrong"));
+                }
+            } catch (err) {
+                console.error("Failed to add menu item:", err);
+            }
+        }
+
+        function clearFormInputs() {
+            document.getElementById("itemName").value = "";
+            document.getElementById("itemType").value = "";
+            document.getElementById("itemPrice").value = "";
+            document.getElementById("chefId").value = "";
+            document.getElementById("itemStock").value = "";
+        }
+
+        window.onload = loadMenu;
+    </script>
+
+</body>
+
+</html>

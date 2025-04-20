@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Serve Smart - Orders Management</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+        .item-row {
+            display: none;
+            background-color: #fafafa;
+        }
+
+        .item-table {
+            width: 100%;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-collapse: collapse;
+        }
+
+        .item-table th,
+        .item-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .item-table th {
+            background-color: #f0f0f0;
+        }
+
+        .toggle-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .toggle-btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            width: 400px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .modal-content label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+
+        .modal-content input,
+        .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .modal-content button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal-content button:hover {
+            background-color: #45a049;
+        }
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">Serve Smart</div>
+        <nav>
+            <a href="../home.html">Dashboard</a>
+            <a href="orders.html">Orders</a>
+            <a href="menu.html">Menu</a>
+            <a href="customers.html">Customers</a>
+            <a href="staff.html">Staff</a>
+            <a href="bill.html">Bill</a>
+            <a href="#" class="logout">Logout</a>
+        </nav>
+    </header>
+
+    <section class="orders">
+        <h1>Manage Orders</h1>
+        <table class="order-table">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Order Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="orderList">
+                <!-- Orders will be populated here dynamically -->
+            </tbody>
+        </table>
+
+        <button class="add-staff">Add New Orders</button>
+    </section>
+
+    <!-- Add New Order Form Modal -->
+    <div id="orderModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="toggleModal(false)">&times;</span>
+            <h2>New Order</h2>
+            <form id="newOrderForm">
+                <label for="waiterId">Waiter ID:</label>
+                <input type="text" id="waiterId" required>
+
+                <label for="customerId">Customer ID:</label>
+                <input type="text" id="customerId" required>
+
+                <label for="tipAmount">Tip Amount (Optional):</label>
+                <input type="number" step="0.01" id="tipAmount" placeholder="Enter tip amount" />
+
+                <fieldset>
+                    <legend>Select Items</legend>
+                    <div id="menuItemsContainer">Loading menu...</div>
+                </fieldset>
+
+                <button type="submit">Place Order</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Serve Smart. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Fetch orders when the page loads
+        window.onload = fetchOrders;
+
+        document.querySelector('.add-staff').addEventListener('click', () => toggleModal(true));
+
+        function toggleModal(show) {
+            const modal = document.getElementById('orderModal');
+            modal.style.display = show ? 'flex' : 'none';
+            if (show) loadMenuItems();
+        }
+
+        async function loadMenuItems() {
+            const container = document.getElementById('menuItemsContainer');
+            container.innerHTML = 'Loading...';
+            try {
+                const res = await fetch('http://127.0.0.1:5000/api/menu');
+                const items = await res.json();
+                container.innerHTML = items.map(item => `
+              <label>
+                <input type="checkbox" name="item" value="${item.id}" data-price="${item.price}">
+                ${item.name} - $${item.price}
+              </label><br>
+            `).join('');
+            } catch (err) {
+                container.innerHTML = 'Failed to load menu.';
+                console.error(err);
+            }
+        }
+
+        document.getElementById('newOrderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const waiterId = document.getElementById('waiterId').value;
+            const customerId = document.getElementById('customerId').value;
+            const tipAmount = parseFloat(document.getElementById("tipAmount").value);
+            const selectedItems = Array.from(document.querySelectorAll('input[name="item"]:checked'))
+                .map(cb => ({
+                    id: parseInt(cb.value),
+                    price: parseFloat(cb.dataset.price),
+                    qty: parseInt(cb.dataset.qty || 1) // optional qty support
+                }));
+
+            if (!waiterId || !customerId || selectedItems.length === 0) {
+                alert("Please select waiter, customer, and at least one item.");
+                return;
+            }
+
+            const ordDate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
+            try {
+                // 1. Place the Order
+                const orderRes = await fetch("http://127.0.0.1:5000/api/orders", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        ord_date: ordDate,
+                        cust_id: parseInt(customerId),
+                        waiter_id: parseInt(waiterId)
+                    })
+                });
+                
+                if (!isNaN(tipAmount) && tipAmount > 0) {
+                    const tipRes = await fetch("http://127.0.0.1:5000/api/tips", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            cust_id: parseInt(customerId),
+                            waiter_id: parseInt(waiterId),
+                            tip: tipAmount
+                        })
+                    });
+
+                    const tipData = await tipRes.json();
+                    if (!tipRes.ok) {
+                        console.warn("Tip error:", tipData.error || "Unknown error");
+                    } else {
+                        console.log("Tip recorded successfully!");
+                    }
+                }
+
+                const orderData = await orderRes.json();
+
+                if (!orderRes.ok) {
+                    throw new Error(orderData.error || "Failed to create order.");
+                }
+
+                const orderId = orderData.id;
+                console.log("Order created with ID:", orderId);
+
+                // 2. Add items to the order
+                for (const item of selectedItems) {
+                    const itemRes = await fetch(`http://127.0.0.1:5000/api/orders/${orderId}/add_item`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            item_no: item.id,
+                            qty: item.qty
+                        })
+                    });
+
+                    const itemData = await itemRes.json();
+                    if (!itemRes.ok) {
+                        throw new Error(itemData.error || `Failed to add item ${item.id}`);
+                    }
+
+                    console.log("Added item:", item.id);
+                }
+
+                alert("Order placed successfully!");
+                toggleModal(false); // Optional: Close your modal
+                e.target.reset(); // Optional: Clear form
+            } catch (err) {
+                console.error("Order Error:", err);
+                alert("Error placing order: " + err.message);
+            }
+        });
+
+        function toggleItems(orderId) {
+            const itemRow = document.getElementById(`items-${orderId}`);
+            itemRow.style.display = itemRow.style.display === "table-row" ? "none" : "table-row";
+        }
+
+        function updateStatus(selectElement, orderId) {
+            const newStatus = selectElement.value;
+            alert(`Order #${orderId} status changed to: ${newStatus}`);
+            // Optionally, send this to your backend here using fetch/AJAX.
+        }
+
+        // Function to fetch and display orders
+        async function fetchOrders() {
+            try {
+                const res = await fetch('http://127.0.0.1:5000/api/orders');
+                const orders = await res.json();
+                console.log('Fetched Orders:', orders);
+                const orderList = document.getElementById('orderList');
+
+                // Clear existing content
+                orderList.innerHTML = '';
+
+                orders.forEach(order => {
+                    const itemsHTML = order.items.map(item => `
+                <tr>
+                    <td>${item.item_name}</td>
+                    <td>${item.qty}</td>
+                    <td>$${item.price}</td>
+                </tr>
+            `).join('');
+
+                    const rowHTML = `
+                <tr>
+                    <td>#${order.order_id}</td>
+                    <td>Customer #${order.customer_id}</td>
+                    <td>
+                        <select onchange="updateStatus(this, '${order.order_id}')">
+                            <option value="Preparing" ${order.status === 'Preparing' ? 'selected' : ''}>Preparing</option>
+                            <option value="Ready" ${order.status === 'Ready' ? 'selected' : ''}>Ready</option>
+                            <option value="Completed" ${order.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                            <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                    </td>
+                    <td>${order.order_date}</td>
+                    <td><button class="toggle-btn" onclick="toggleItems('${order.order_id}')">View Items</button></td>
+                </tr>
+                <tr id="items-${order.order_id}" class="item-row">
+                    <td colspan="5">
+                        <table class="item-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Qty</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsHTML}
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            `;
+                    orderList.innerHTML += rowHTML;
+                });
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+            }
+        }
+
+    </script>
+</body>
+
+</html>
